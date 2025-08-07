@@ -1,4 +1,5 @@
 # Enterprise WebAPI Starter Kit
++ Clean Architecture
 + ASP.NET Core 10.0 (Web API)
 + Entity Framework Core (SQL Server, real DB)
 + .bat script chạy migrations, init DB
