@@ -181,9 +181,78 @@ public interface IUnitOfWork {
 + Mỗi layer/tầng chỉ chịu trách nhiệm 1 loại logic duy nhất
 + Giảm phụ thuộc lẫn nhau → dễ thay đổi, dễ unit test
 
-|:--Tầng-|:--Trách nhiệm-|:--Không được làm-|
+|Tầng | Trách nhiệm | Không được làm |
 |----|----|----|
 | Domain | Định nghĩa nghiệp vụ cốt lõi (Entities, Enums) | Không dùng EF, không chứa validation UI |
 | Application | Chứa use-case cụ thể (handlers, service) | Không biết gì về EF, DB, UI |
 | Infrastructure | Cài đặt kỹ thuật (EF Core, Dapper, File, SMTP, Redis, Logging) | Không được dùng Razor component |
 | BlazorUI | Trình bày dữ liệu, nhận input từ người dùng | Không chứa business logic, không gọi DbContext trực tiếp |
+
+## 2. Dễ bảo trì, dễ test
+
+"Khi một phần thay đổi, các phần khác không bị ảnh hưởng hoặc dễ dàng được kiểm thử riêng biệt."
+
+### 🎯 Mục tiêu:
++ Không cần DB hoặc UI để test logic
++ Có thể mock dễ dàng các dependency
++ Đảm bảo ứng dụng hoạt động đúng logic mà không cần chạy thật
+
+### Áp dụng:
+
+#### Unit test dễ dàng
+```
+public class CreateUserHandlerTests {
+    [Fact]
+    public async Task CreateUser_ShouldAddNewUser_WhenValidInput() {
+        var userRepoMock = new Mock<IUserRepository>();
+        var handler = new CreateUserHandler(userRepoMock.Object);        
+        var result = await handler.Handle(new CreateUserCommand { Name = "Test" });
+        userRepoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+    }
+}
+```
+
+#### Refactor dễ:
++ Bạn thay EF bằng Dapper → chỉ sửa trong Infrastructure
++ Bạn thay Blazor bằng MAUI → không đụng gì Application/Domain
++ Bạn cần thêm audit log → chỉ sửa cross-cutting concern
+
+## 3. Sẵn sàng scale sang Microservices hoặc Multi-layer APIs
+
+"Nếu ngày mai phải chia hệ thống thành các microservice nhỏ, bạn không cần viết lại từ đầu."
+
+### Mục tiêu:
++ Tăng tính mở rộng theo chiều ngang (scalability)
++ Dễ tách ra thành API riêng, background service riêng, mobile backend riêng
+
+### Áp dụng:
+
+#### Việc tách Application + Domain thành core libraries:
++ Bạn có thể dùng lại Application layer trong:
+    + Blazor UI
+    + Web API (RESTful)
+    + gRPC Service
+    + Background Job Worker
+
+#### Tách DB access:
++ Bạn có thể tạo 1 microservice chỉ làm nhiệm vụ Read (CQRS ReadModel)
++ Một service khác chỉ quản lý User
+
+## Ví dụ mở rộng:
+| Dự án hiện tại | Mở rộng thành |
+|----|----|
+| Blazor + Clean Architecture | Thêm ASP.NET Core Web API (MyApp.API) |
+| EF Core + SQL Server | Thêm MongoDB Read Model cho performance |
+| EmailService nội bộ | Tách riêng thành NotificationService |
+| Application logic | Dùng lại trong BackgroundWorker gửi báo cáo |
+
+## Tóm tắt ngắn gọn:
+| Lợi ích | Ý nghĩa |
+|----|----|
+| Tách biệt concern | Dễ hiểu, dễ quản lý, không rối logic |
+| Dễ test/bảo trì | Thay đổi 1 phần không ảnh hưởng phần khác |
+| Dễ scale | Chuẩn bị sẵn cho microservices, worker, API |
+
+## Markdown Tables
++ https://www.codecademy.com/resources/docs/markdown/tables
++ https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/organizing-information-with-tables
