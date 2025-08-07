@@ -12,6 +12,55 @@
 + BackgroundService định kỳ (ví dụ: cleanup job mỗi 1 phút)
 + xUnit tests cho Controller và Service Layer
 
+# Unit Test Project
+## References (Projects and NuGet):
+| Project / Package | Mục đích |
+| --- | --- |
+| MyApp.Domain | Test domain logic (Entities, ValueObjects, Domain Services). |
+| MyApp.Application | Test Application layer (UseCases, DTOs, Validation). |
+| Không reference đến Infrastructure | Tránh phụ thuộc implementation (Database, External Services). |
+| FluentAssertions | Để kiểm tra kết quả một cách rõ ràng. |
+| xUnit / NUnit / MSTest | Framework test. |
+| Moq / NSubstitute | Để mock interfaces (ví dụ IUnitOfWork, IRepository<T>, ...). |
+
+## Test gì trong Unit Test:
++ Business Rules (e.g. Validate order total > 0)
++ Application Use Cases (e.g. CreateOrderHandler, RegisterUserHandler)
++ Mapping giữa DTO và Entity
++ Validation logic
+
+# Integration Test Project
+## References (Projects and NuGet):
+| Project / Package | Mục đích |
+| --- | --- | 
+| MyApp.Application | Gọi UseCases và Handler thực tế để test end-to-end logic. |
+| MyApp.Infrastructure | Thực sự chạy EF Core + Dapper (SQL Server thực tế hoặc LocalDb). |
+| MyApp.Persistence (nếu tách riêng) | Truy cập database (EF DbContext, Dapper UnitOfWork, ConnectionFactory) |
+| xUnit / NUnit / MSTest | Framework test. |
+| FluentAssertions | Kiểm tra kết quả. |
+| Testcontainers (nếu dùng) | 🛑 Không cần nếu bạn không dùng Docker. |
+
+## Test gì trong Integration Test:
++ Kết nối thực tế với SQL Server (e.g. query, transaction)
++ Repository thực (EF & Dapper)
++ Gọi UseCase đầy đủ từ input → database → output
++ Test Transaction behavior (Rollback/Commit)
++ Test Migration, Seed Data
+
+# Sơ đồ phụ thuộc tổng thể
+```
+[UnitTest Project]
+ ├── MyApp.Domain
+ └── MyApp.Application
+     └── Mock: IUnitOfWork, IRepository<T>
+
+[IntegrationTest Project]
+ ├── MyApp.Application
+ ├── MyApp.Infrastructure
+ └── MyApp.Persistence (nếu có)
+     └── EF + Dapper thật
+```
+
 # Solution Architect
 ```
 /MyApp.sln
