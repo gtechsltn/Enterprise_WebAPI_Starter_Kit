@@ -181,7 +181,7 @@ public interface IUnitOfWork {
 + Mỗi layer/tầng chỉ chịu trách nhiệm 1 loại logic duy nhất
 + Giảm phụ thuộc lẫn nhau → dễ thay đổi, dễ unit test
 
-|: Tầng |: Trách nhiệm |: Không được làm |
+|:--Tầng-|:--Trách nhiệm-|:--Không được làm-|
 |----|----|----|
 | Domain | Định nghĩa nghiệp vụ cốt lõi (Entities, Enums) | Không dùng EF, không chứa validation UI |
 | Application | Chứa use-case cụ thể (handlers, service) | Không biết gì về EF, DB, UI |
